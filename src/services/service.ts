@@ -25,265 +25,265 @@ async function connectToDatabase(): Promise<MongoClient> {
 
 // Get all chat logs
 router.get('/chatlogs', async (req: Request, res: Response) => {
-    try {
-      const client = await connectToDatabase();
-      const database = client.db('your_database_name'); 
-      const collection = database.collection<ChatLogModel>('chatlogs'); 
-      const chatLogs = await collection.find({}).toArray();
-      res.json(chatLogs);
-    } catch (error) {
-      console.error('Error fetching chat logs:', error);
-      res.status(500).json({ error: 'Failed to fetch chat logs' });
+  try {
+    const client = await connectToDatabase();
+    const database = client.db('your_database_name'); 
+    const collection = database.collection<ChatLogModel>('chatlogs'); 
+    const chatLogs = await collection.find({}).toArray();
+    res.json(chatLogs);
+  } catch (error) {
+    console.error('Error fetching chat logs:', error);
+    res.status(500).json({ error: 'Failed to fetch chat logs' });
+  }
+});
+
+// Get a single chat log by ID
+router.get('/chatlogs/:id', async (req: Request, res: Response) => {
+  try {
+    const client = await connectToDatabase();
+    const database = client.db('your_database_name'); 
+    const collection = database.collection<ChatLogModel>('chatlogs');
+    const chatLog = await collection.findOne({ logId: parseInt(req.params.id) });
+    if (chatLog) {
+      res.json(chatLog);
+    } else {
+      res.status(404).json({ error: 'Chat log not found' });
     }
-  });
+  } catch (error) {
+    console.error('Error fetching chat log:', error);
+    res.status(500).json({ error: 'Failed to fetch chat log' });
+  }
+});
+
+// Create a new chat log
+router.post('/chatlogs', async (req: Request, res: Response) => {
+  try {
+    const client = await connectToDatabase();
+    const database = client.db('your_database_name'); 
+    const collection = database.collection<ChatLogModel>('chatlogs');
+    const chatLogData = req.body as ChatLogModel; // Type cast request body to ChatLogModel
+    const result = await collection.insertOne(chatLogData);
+    res.status(201).json({ insertedId: result.insertedId });
+  } catch (error) {
+    console.error('Error creating chat log:', error);
+    res.status(500).json({ error: 'Failed to create chat log' });
+  }
+});
   
-  // Get a single chat log by ID
-  router.get('/chatlogs/:id', async (req: Request, res: Response) => {
-    try {
-      const client = await connectToDatabase();
-      const database = client.db('your_database_name'); 
-      const collection = database.collection<ChatLogModel>('chatlogs');
-      const chatLog = await collection.findOne({ logId: parseInt(req.params.id) });
-      if (chatLog) {
-        res.json(chatLog);
-      } else {
-        res.status(404).json({ error: 'Chat log not found' });
-      }
-    } catch (error) {
-      console.error('Error fetching chat log:', error);
-      res.status(500).json({ error: 'Failed to fetch chat log' });
+// Update a chat log
+router.put('/chatlogs/:id', async (req: Request, res: Response) => {
+  try {
+    const client = await connectToDatabase();
+    const database = client.db('your_database_name'); 
+    const collection = database.collection<ChatLogModel>('chatlogs');
+    const result = await collection.updateOne(
+      { logId: parseInt(req.params.id) },
+      { $set: req.body } 
+    );
+    if (result.modifiedCount === 0) {
+      res.status(404).json({ error: 'Chat log not found' });
+    } else {
+      res.json({ message: 'Chat log updated successfully' });
     }
-  });
-  
-  // Create a new chat log
-  router.post('/chatlogs', async (req: Request, res: Response) => {
-    try {
-      const client = await connectToDatabase();
-      const database = client.db('your_database_name'); 
-      const collection = database.collection<ChatLogModel>('chatlogs');
-      const chatLogData = req.body as ChatLogModel; // Type cast request body to ChatLogModel
-      const result = await collection.insertOne(chatLogData);
-      res.status(201).json({ insertedId: result.insertedId });
-    } catch (error) {
-      console.error('Error creating chat log:', error);
-      res.status(500).json({ error: 'Failed to create chat log' });
+  } catch (error) {
+    console.error('Error updating chat log:', error);
+    res.status(500).json({ error: 'Failed to update chat log' });
+  }
+});
+
+// Delete a chat log
+router.delete('/chatlogs/:id', async (req: Request, res: Response) => {
+  try {
+    const client = await connectToDatabase();
+    const database = client.db('your_database_name'); 
+    const collection = database.collection<ChatLogModel>('chatlogs');
+    const result = await collection.deleteOne({ logId: parseInt(req.params.id) });
+    if (result.deletedCount === 0) {
+      res.status(404).json({ error: 'Chat log not found' });
+    } else {
+      res.json({ message: 'Chat log deleted successfully' });
     }
-  });
-  
-  // Update a chat log
-  router.put('/chatlogs/:id', async (req: Request, res: Response) => {
-    try {
-      const client = await connectToDatabase();
-      const database = client.db('your_database_name'); 
-      const collection = database.collection<ChatLogModel>('chatlogs');
-      const result = await collection.updateOne(
-        { logId: parseInt(req.params.id) },
-        { $set: req.body } 
-      );
-      if (result.modifiedCount === 0) {
-        res.status(404).json({ error: 'Chat log not found' });
-      } else {
-        res.json({ message: 'Chat log updated successfully' });
-      }
-    } catch (error) {
-      console.error('Error updating chat log:', error);
-      res.status(500).json({ error: 'Failed to update chat log' });
-    }
-  });
-  
-  // Delete a chat log
-  router.delete('/chatlogs/:id', async (req: Request, res: Response) => {
-    try {
-      const client = await connectToDatabase();
-      const database = client.db('your_database_name'); 
-      const collection = database.collection<ChatLogModel>('chatlogs');
-      const result = await collection.deleteOne({ logId: parseInt(req.params.id) });
-      if (result.deletedCount === 0) {
-        res.status(404).json({ error: 'Chat log not found' });
-      } else {
-        res.json({ message: 'Chat log deleted successfully' });
-      }
-    } catch (error) {
-      console.error('Error deleting chat log:', error);
-      res.status(500).json({ error: 'Failed to delete chat log' });
-    }
-  });
+  } catch (error) {
+    console.error('Error deleting chat log:', error);
+    res.status(500).json({ error: 'Failed to delete chat log' });
+  }
+});
 
 //   Customer Routes
 
 // Get all customers
 router.get('/customers', async (req: Request, res: Response) => {
-    try {
-      const client = await connectToDatabase();
-      const database = client.db('your_database_name'); 
-      const collection = database.collection<CustomerModel>('customers'); 
-      const customers = await collection.find({}).toArray();
-      res.json(customers);
-    } catch (error) {
-      console.error('Error fetching customers:', error);
-      res.status(500).json({ error: 'Failed to fetch customers' });
-    }
-  });
+  try {
+    const client = await connectToDatabase();
+    const database = client.db('your_database_name'); 
+    const collection = database.collection<CustomerModel>('customers'); 
+    const customers = await collection.find({}).toArray();
+    res.json(customers);
+  } catch (error) {
+    console.error('Error fetching customers:', error);
+    res.status(500).json({ error: 'Failed to fetch customers' });
+  }
+});
   
-  // Get a single customer by ID
-  router.get('/customers/:id', async (req: Request, res: Response) => {
-    try {
-      const client = await connectToDatabase();
-      const database = client.db('your_database_name'); 
-      const collection = database.collection<CustomerModel>('customers');
-      const customer = await collection.findOne({ customerId: parseInt(req.params.id) });
-      if (customer) {
-        res.json(customer);
-      } else {
-        res.status(404).json({ error: 'Customer not found' });
-      }
-    } catch (error) {
-      console.error('Error fetching customer:', error);
-      res.status(500).json({ error: 'Failed to fetch customer' });
+// Get a single customer by ID
+router.get('/customers/:id', async (req: Request, res: Response) => {
+  try {
+    const client = await connectToDatabase();
+    const database = client.db('your_database_name'); 
+    const collection = database.collection<CustomerModel>('customers');
+    const customer = await collection.findOne({ customerId: parseInt(req.params.id) });
+    if (customer) {
+      res.json(customer);
+    } else {
+      res.status(404).json({ error: 'Customer not found' });
     }
-  });
+  } catch (error) {
+    console.error('Error fetching customer:', error);
+    res.status(500).json({ error: 'Failed to fetch customer' });
+  }
+});
   
-  // Create a new customer
-  router.post('/customers', async (req: Request, res: Response) => {
-    try {
-      const client = await connectToDatabase();
-      const database = client.db('your_database_name'); 
-      const collection = database.collection<CustomerModel>('customers');
-      const customerData = req.body as CustomerModel; // Type cast request body to CustomerModel
-      const result = await collection.insertOne(customerData);
-      res.status(201).json({ insertedId: result.insertedId });
-    } catch (error) {
-      console.error('Error creating customer:', error);
-      res.status(500).json({ error: 'Failed to create customer' });
+// Create a new customer
+router.post('/customers', async (req: Request, res: Response) => {
+  try {
+    const client = await connectToDatabase();
+    const database = client.db('your_database_name'); 
+    const collection = database.collection<CustomerModel>('customers');
+    const customerData = req.body as CustomerModel; // Type cast request body to CustomerModel
+    const result = await collection.insertOne(customerData);
+    res.status(201).json({ insertedId: result.insertedId });
+  } catch (error) {
+    console.error('Error creating customer:', error);
+    res.status(500).json({ error: 'Failed to create customer' });
+  }
+});
+
+// Update a customer
+router.put('/customers/:id', async (req: Request, res: Response) => {
+  try {
+    const client = await connectToDatabase();
+    const database = client.db('your_database_name'); 
+    const collection = database.collection<CustomerModel>('customers');
+    const result = await collection.updateOne(
+      { customerId: parseInt(req.params.id) },
+      { $set: req.body } 
+    );
+    if (result.modifiedCount === 0) {
+      res.status(404).json({ error: 'Customer not found' });
+    } else {
+      res.json({ message: 'Customer updated successfully' });
     }
-  });
-  
-  // Update a customer
-  router.put('/customers/:id', async (req: Request, res: Response) => {
-    try {
-      const client = await connectToDatabase();
-      const database = client.db('your_database_name'); 
-      const collection = database.collection<CustomerModel>('customers');
-      const result = await collection.updateOne(
-        { customerId: parseInt(req.params.id) },
-        { $set: req.body } 
-      );
-      if (result.modifiedCount === 0) {
-        res.status(404).json({ error: 'Customer not found' });
-      } else {
-        res.json({ message: 'Customer updated successfully' });
-      }
-    } catch (error) {
-      console.error('Error updating customer:', error);
-      res.status(500).json({ error: 'Failed to update customer' });
+  } catch (error) {
+    console.error('Error updating customer:', error);
+    res.status(500).json({ error: 'Failed to update customer' });
+  }
+});
+
+// Delete a customer
+router.delete('/customers/:id', async (req: Request, res: Response) => {
+  try {
+    const client = await connectToDatabase();
+    const database = client.db('your_database_name'); 
+    const collection = database.collection<CustomerModel>('customers');
+    const result = await collection.deleteOne({ customerId: parseInt(req.params.id) });
+    if (result.deletedCount === 0) {
+      res.status(404).json({ error: 'Customer not found' });
+    } else {
+      res.json({ message: 'Customer deleted successfully' });
     }
-  });
-  
-  // Delete a customer
-  router.delete('/customers/:id', async (req: Request, res: Response) => {
-    try {
-      const client = await connectToDatabase();
-      const database = client.db('your_database_name'); 
-      const collection = database.collection<CustomerModel>('customers');
-      const result = await collection.deleteOne({ customerId: parseInt(req.params.id) });
-      if (result.deletedCount === 0) {
-        res.status(404).json({ error: 'Customer not found' });
-      } else {
-        res.json({ message: 'Customer deleted successfully' });
-      }
-    } catch (error) {
-      console.error('Error deleting customer:', error);
-      res.status(500).json({ error: 'Failed to delete customer' });
-    }
-  });
+  } catch (error) {
+    console.error('Error deleting customer:', error);
+    res.status(500).json({ error: 'Failed to delete customer' });
+  }
+});
 
 //   FAQ Routes
 
 // Get all FAQs
 router.get('/faqs', async (req: Request, res: Response) => {
-    try {
-      const client = await connectToDatabase();
-      const database = client.db('your_database_name'); 
-      const collection = database.collection<FaqModel>('faqs'); 
-      const faqs = await collection.find({}).toArray();
-      res.json(faqs);
-    } catch (error) {
-      console.error('Error fetching FAQs:', error);
-      res.status(500).json({ error: 'Failed to fetch FAQs' });
+  try {
+    const client = await connectToDatabase();
+    const database = client.db('your_database_name'); 
+    const collection = database.collection<FaqModel>('faqs'); 
+    const faqs = await collection.find({}).toArray();
+    res.json(faqs);
+  } catch (error) {
+    console.error('Error fetching FAQs:', error);
+    res.status(500).json({ error: 'Failed to fetch FAQs' });
+  }
+});
+
+// Get a single FAQ by ID
+router.get('/faqs/:id', async (req: Request, res: Response) => {
+  try {
+    const client = await connectToDatabase();
+    const database = client.db('your_database_name'); 
+    const collection = database.collection<FaqModel>('faqs');
+    const faq = await collection.findOne({ faqId: parseInt(req.params.id) });
+    if (faq) {
+      res.json(faq);
+    } else {
+      res.status(404).json({ error: 'FAQ not found' });
     }
-  });
-  
-  // Get a single FAQ by ID
-  router.get('/faqs/:id', async (req: Request, res: Response) => {
-    try {
-      const client = await connectToDatabase();
-      const database = client.db('your_database_name'); 
-      const collection = database.collection<FaqModel>('faqs');
-      const faq = await collection.findOne({ faqId: parseInt(req.params.id) });
-      if (faq) {
-        res.json(faq);
-      } else {
-        res.status(404).json({ error: 'FAQ not found' });
-      }
-    } catch (error) {
-      console.error('Error fetching FAQ:', error);
-      res.status(500).json({ error: 'Failed to fetch FAQ' });
+  } catch (error) {
+    console.error('Error fetching FAQ:', error);
+    res.status(500).json({ error: 'Failed to fetch FAQ' });
+  }
+});
+
+// Create a new FAQ
+router.post('/faqs', async (req: Request, res: Response) => {
+  try {
+    const client = await connectToDatabase();
+    const database = client.db('your_database_name'); 
+    const collection = database.collection<FaqModel>('faqs');
+    const faqData = req.body as FaqModel; // Type cast request body to FaqModel
+    const result = await collection.insertOne(faqData);
+    res.status(201).json({ insertedId: result.insertedId });
+  } catch (error) {
+    console.error('Error creating FAQ:', error);
+    res.status(500).json({ error: 'Failed to create FAQ' });
+  }
+});
+
+// Update an FAQ
+router.put('/faqs/:id', async (req: Request, res: Response) => {
+  try {
+    const client = await connectToDatabase();
+    const database = client.db('your_database_name'); 
+    const collection = database.collection<FaqModel>('faqs');
+    const result = await collection.updateOne(
+      { faqId: parseInt(req.params.id) },
+      { $set: req.body } 
+    );
+    if (result.modifiedCount === 0) {
+      res.status(404).json({ error: 'FAQ not found' });
+    } else {
+      res.json({ message: 'FAQ updated successfully' });
     }
-  });
-  
-  // Create a new FAQ
-  router.post('/faqs', async (req: Request, res: Response) => {
-    try {
-      const client = await connectToDatabase();
-      const database = client.db('your_database_name'); 
-      const collection = database.collection<FaqModel>('faqs');
-      const faqData = req.body as FaqModel; // Type cast request body to FaqModel
-      const result = await collection.insertOne(faqData);
-      res.status(201).json({ insertedId: result.insertedId });
-    } catch (error) {
-      console.error('Error creating FAQ:', error);
-      res.status(500).json({ error: 'Failed to create FAQ' });
+  } catch (error) {
+    console.error('Error updating FAQ:', error);
+    res.status(500).json({ error: 'Failed to update FAQ' });
+  }
+});
+
+// Delete an FAQ
+router.delete('/faqs/:id', async (req: Request, res: Response) => {
+  try {
+    const client = await connectToDatabase();
+    const database = client.db('your_database_name'); 
+    const collection = database.collection<FaqModel>('faqs');
+    const result = await collection.deleteOne({ faqId: parseInt(req.params.id) });
+    if (result.deletedCount === 0) {
+      res.status(404).json({ error: 'FAQ not found' });
+    } else {
+      res.json({ message: 'FAQ deleted successfully' });
     }
-  });
-  
-  // Update an FAQ
-  router.put('/faqs/:id', async (req: Request, res: Response) => {
-    try {
-      const client = await connectToDatabase();
-      const database = client.db('your_database_name'); 
-      const collection = database.collection<FaqModel>('faqs');
-      const result = await collection.updateOne(
-        { faqId: parseInt(req.params.id) },
-        { $set: req.body } 
-      );
-      if (result.modifiedCount === 0) {
-        res.status(404).json({ error: 'FAQ not found' });
-      } else {
-        res.json({ message: 'FAQ updated successfully' });
-      }
-    } catch (error) {
-      console.error('Error updating FAQ:', error);
-      res.status(500).json({ error: 'Failed to update FAQ' });
-    }
-  });
-  
-  // Delete an FAQ
-  router.delete('/faqs/:id', async (req: Request, res: Response) => {
-    try {
-      const client = await connectToDatabase();
-      const database = client.db('your_database_name'); 
-      const collection = database.collection<FaqModel>('faqs');
-      const result = await collection.deleteOne({ faqId: parseInt(req.params.id) });
-      if (result.deletedCount === 0) {
-        res.status(404).json({ error: 'FAQ not found' });
-      } else {
-        res.json({ message: 'FAQ deleted successfully' });
-      }
-    } catch (error) {
-      console.error('Error deleting FAQ:', error);
-      res.status(500).json({ error: 'Failed to delete FAQ' });
-    }
-  });
+  } catch (error) {
+    console.error('Error deleting FAQ:', error);
+    res.status(500).json({ error: 'Failed to delete FAQ' });
+  }
+});
 
 // Support Ticket Routes
 
