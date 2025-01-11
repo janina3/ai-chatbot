@@ -130,5 +130,8 @@ dist
 .pnp.*
 
 # Generated JS files
-dist/
-build/
+dist/ 
+build/ 
+lib/ 
+*.js 
+*.js.map 
